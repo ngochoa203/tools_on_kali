@@ -36,11 +36,16 @@ fi
 echo "Dừng các tiến trình xung đột..."
 airmon-ng check kill
 
+# Đổi địa chỉ MAC ngẫu nhiên
+echo "Thay đổi địa chỉ MAC cho $INTERFACE..."
+ip link set "$INTERFACE" down
+macchanger -r "$INTERFACE"
+ip link set "$INTERFACE" up
+
 # Chuyển sang monitor mode
 echo "Chuyển $INTERFACE sang monitor mode..."
 airmon-ng start "$INTERFACE"
 if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
-    echo "[ERROR] Không thể chuyển sang monitor mode. Kiểm tra card mạng."
     cleanup
 fi
 
