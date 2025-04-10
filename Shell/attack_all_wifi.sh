@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Cấu hình
-INTERFACE="wlan1" 
+INTERFACE="wlan0" 
 MONITOR_INTERFACE="${INTERFACE}mon"
 DURATION=100000
 SCAN_TIME=20
