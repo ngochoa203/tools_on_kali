@@ -38,6 +38,12 @@ fi
 echo "Dừng các tiến trình xung đột..."
 airmon-ng check kill
 
+# Kiểm tra card mạng
+if ! iwconfig 2>&1 | grep -q "$INTERFACE"; then
+    echo "[ERROR] Không tìm thấy card mạng $INTERFACE. Kiểm tra lại."
+    exit 1
+fi
+
 # Đổi MAC address ngẫu nhiên
 echo "Đổi MAC address ngẫu nhiên cho $INTERFACE..."
 if macchanger -r "$INTERFACE"; then
@@ -53,6 +59,13 @@ if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
     echo "[ERROR] Không thể chuyển sang monitor mode. Kiểm tra card mạng."
     cleanup
 fi
+
+# Kiểm tra monitor mode
+if ! iwconfig 2>&1 | grep -q "$MONITOR_INTERFACE"; then
+    echo "[ERROR] Không thể tìm thấy $MONITOR_INTERFACE. Kiểm tra lại."
+    cleanup
+fi
+echo "Monitor mode đã được thiết lập cho $MONITOR_INTERFACE."
 
 # Quét mạng Wi-Fi
 echo "Quét mạng Wi-Fi trong $SCAN_TIME giây..."

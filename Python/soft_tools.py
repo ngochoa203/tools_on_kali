@@ -23,6 +23,11 @@ def get_tool_description(tool):
         return "Không có mô tả"
     return "Không có mô tả"
 
+def soft_rank():
+    tools = get_installed_tools()
+    ranked_tools = sorted(tools, key=lambda x: len(x))  # Sắp xếp theo độ dài tên công cụ
+    return ranked_tools;
+
 def main():
     tools = get_installed_tools()
     print(f"Tìm thấy {len(tools)} công cụ đã cài.")
