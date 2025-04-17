@@ -2,9 +2,9 @@ import os
 import subprocess
 
 def get_installed_tools():
-    # Lấy danh sách các gói đã cài
+    # Lấy danh sách các gói đã cài đặt
     result = subprocess.run(['apt', 'list', '--installed'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-    lines = result.stdout.split('\n')[1:]  # Bỏ dòng đầu
+    lines = result.stdout.split('\n')[1:] 
     tools = []
     for line in lines:
         if '/' in line:
