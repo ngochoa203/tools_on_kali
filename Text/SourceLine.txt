@@ -1,0 +1,71 @@
+=========================
+📌 TERMINAL TRONG KALI LINUX
+=========================
+
+
+
+=========================
+📌 CÁC DÒNG LỆNH GIT CƠ BẢN
+=========================
+
+# Khởi tạo git repository trong thư mục hiện tại
+git init
+> Tạo thư mục .git để theo dõi thay đổi.
+
+# Kiểm tra trạng thái hiện tại của repo
+git status
+> Hiển thị file đã thay đổi, thêm hoặc chưa được theo dõi.
+
+# Thêm file vào staging area
+git add <tên_file>
+> Đánh dấu file để commit lần tới.
+
+# Thêm tất cả file vào staging
+git add .
+
+# Commit các thay đổi với message
+git commit -m "Mô tả thay đổi"
+> Ghi lại snapshot với nội dung rõ ràng.
+
+# Xem lịch sử các commit
+git log
+> Hiển thị thông tin commit theo thứ tự thời gian.
+
+# Liên kết local repo với repo từ xa (GitHub, GitLab,...)
+git remote add origin <url>
+> Thêm đường dẫn repo từ xa để push/pull code.
+
+# Đẩy code lên nhánh chính của repo từ xa
+git push -u origin main
+> Lần đầu push lên nhánh 'main' và đặt làm mặc định.
+
+# Lấy code mới nhất từ repo từ xa
+git pull
+> Cập nhật và gộp code mới nhất từ server về local.
+
+# Xem các nhánh hiện có
+git branch
+> Liệt kê tất cả nhánh đang có trong local repo.
+
+# Tạo nhánh mới
+git checkout -b ten-nhanh-moi
+
+# Chuyển sang nhánh khác
+git checkout ten-nhanh
+
+# Xoá nhánh
+git branch -d ten-nhanh
+
+# Clone 1 repo từ xa về máy
+git clone <url>
+> Tải toàn bộ source code về local máy.
+
+# Kiểm tra remote đang liên kết
+git remote -v
+
+=========================
+GỢI Ý:
+=========================
+✔ Sử dụng VS Code terminal để thực thi tất cả lệnh Git trên.
+✔ Nên tạo file .gitignore để loại trừ những file không cần thiết.
+✔ Commit thường xuyên với message rõ ràng giúp dễ quản lý.
