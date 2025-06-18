@@ -1,0 +1,57 @@
+{
+  // 💾 Tự động lưu khi rời khỏi file
+  "files.autoSave": "onFocusChange",
+
+  // 🔠 Font lập trình và Nerd Font cho icon terminal
+  "editor.fontFamily": "Fira Code, JetBrainsMono Nerd Font, Noto Sans, DejaVu Sans Mono, Ubuntu Mono, Consolas, monospace",
+  "editor.fontSize": 16,
+  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
+
+  // 🔍 Unicode highlight: tắt cảnh báo ký tự đặc biệt
+  "editor.unicodeHighlight.invisibleCharacters": false,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+
+  // 🎨 Giao diện
+  "workbench.iconTheme": "vscode-icons",
+  "vsicons.dontShowNewVersionMessage": true,
+
+  // 🔁 Xác nhận thao tác kéo thả file
+  "explorer.confirmDragAndDrop": false,
+
+  // 🔁 Cập nhật import khi di chuyển file TypeScript
+  "typescript.updateImportsOnFileMove.enabled": "always",
+
+  // 💡 Quick suggestions trong comment & string
+  "editor.quickSuggestions": {
+    "strings": "on",
+    "comments": "on"
+  },
+
+  // 💬 Emmet (HTML, JSX) hỗ trợ gợi ý inline
+  "emmet.useInlineCompletions": true,
+
+  // 🧠 GitHub Copilot & NextEdit AI Suggestions
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "augment.nextEdit.enableGlobalBackgroundSuggestions": true,
+  "augment.nextEdit.showDiffInHover": true,
+  "augment.nextEdit.highlightSuggestionsInTheEditor": true,
+
+  // ✍️ Inline Suggest behavior
+  "editor.inlineSuggest.edits.showCollapsed": true,
+  "editor.inlineSuggest.suppressSuggestions": false,
+
+  // 🐚 Terminal (Fish shell) gợi ý dòng lệnh
+  "terminal.integrated.suggest.enabled": true,
+  "terminal.integrated.suggest.inlineSuggestion": "alwaysOnTopExceptExactMatch",
+
+  // 🐟 Chọn shell mặc định là Fish
+  "terminal.integrated.defaultProfile.linux": "fish",
+  "terminal.integrated.profiles.linux": {
+    "fish": {
+      "path": "/usr/bin/fish"
+    }
+  },
+
+  // 📡 Telemetry
+  "redhat.telemetry.enabled": true
+}
